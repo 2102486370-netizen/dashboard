@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>嵊州开元名都 · 数字化驾驶舱 V74</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.staticfile.net/echarts/5.5.0/echarts.min.js"></script>
+    <script src="https://cdn.staticfile.net/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
+        /* 🌟 重写底层CSS：移动端允许滚动，禁用横向滚动 */
+        html, body { width: 100%; overflow-x: hidden; margin: 0; padding: 0; background-color: #0d111a; color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* 🌟 大屏设备恢复全屏锁死高度体验 */
+        @media (min-width: 1024px) {
+            html, body { height: 100vh; overflow: hidden; }
+            #exportWrapper { height: 100vh; overflow: hidden; padding: 2vh 2.5vw; gap: 0; }
+        }
+        
+        #exportWrapper { min-height: 100vh; width: 100%; display: flex; flex-direction: column; padding: 4vw; box-sizing: border-box; gap: 1rem; }
+        
+        .biz-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(15px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; }
+        .brand-title { font-weight: 900; background: linear-gradient(135deg, #a7f3d0, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .digital-clock { font-family: 'JetBrains+Mono', monospace; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .dept-item { padding: 0.6vh 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .dept-item:last-child { border-bottom: none; }
+        #exportWrapper:fullscreen, #exportWrapper:-webkit-full-screen { padding: 4vh 4vw; background-color: #0d111a; }
+    </style>
+</head>
+<body>
+    <div id="exportWrapper">
+        <header class="flex-none flex flex-col lg:flex-row justify-between items-start lg:items-center mb-2 lg:mb-6 border-b border-slate-700/60 pb-4">
+            <div class="flex items-center gap-3 lg:gap-5 w-full lg:w-auto">
+                <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl flex-shrink-0"><span class="text-white font-black text-xl lg:text-2xl tracking-tighter">KY</span></div>
+                <div class="min-w-0">
+                    <h1 class="text-xl lg:text-3xl brand-title tracking-tighter truncate">数字化经营决策系统</h1>
+                    <div class="flex items-center gap-2 lg:gap-3 mt-1">
+                        <span id="liveClock" class="digital-clock text-xs lg:text-sm font-bold tracking-widest">00:00:00</span>
+                        <span class="text-emerald-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest px-2 lg:px-3 py-0.5 lg:py-1 rounded-full border border-emerald-800 bg-emerald-950/40 animate-pulse truncate">V74 全端自适应版</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 mt-4 lg:mt-0 w-full lg:w-auto justify-between lg:justify-end">
+                <button onclick="toggleFullScreen()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 lg:px-6 py-2 lg:py-3 rounded-xl transition-all shadow-lg flex-1 lg:flex-none"><span id="fsText">演示模式</span></button>
+                <select id="dateSelector" class="bg-slate-800 border border-slate-700 rounded-xl px-3 lg:px-4 py-2 lg:py-2 text-sm font-bold text-blue-300 outline-none flex-1 lg:flex-none"></select>
+            </div>
+        </header>
+
+        <div id="loading" class="mt-32 text-center flex-none">
+            <div class="w-12 h-12 border-4 border-blue-500/10 border-t-blue-400 rounded-full animate-spin mx-auto mb-6"></div>
+            <p id="loadingMsg" class="text-slate-400 text-sm tracking-widest uppercase">云端数据拉取中，请稍候...</p>
+        </div>
+
+        <div id="topRow" class="hidden flex-none grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-2 lg:mb-6 lg:h-[22vh]">
+            
+            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-indigo-500 bg-indigo-500/10 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">① 昨日结账人效</p>
+                <div class="flex items-baseline gap-2 lg:gap-3 mb-3 lg:mb-4"><span id="prevActualEff" class="text-3xl lg:text-5xl font-black text-indigo-300 italic leading-none">0.00</span><span id="prevEffDiff" class="text-[10px] lg:text-xs font-black px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-lg shadow-sm">--</span></div>
+                <div class="grid grid-cols-2 gap-1 lg:gap-2">
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">房务结账</span><span id="prevRoomEff" class="text-base lg:text-xl font-black text-emerald-400">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮结账</span><span id="prevFoodEff" class="text-base lg:text-xl font-black text-amber-400">--</span></div>
+                </div>
+            </div>
+
+            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-emerald-500 bg-emerald-600/5 shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">② 今日上班人数</p>
+                <div class="flex items-baseline gap-2 mb-3 lg:mb-4"><span id="totalStaffCount" class="text-3xl lg:text-5xl font-black text-emerald-400 leading-none">0</span><span class="text-slate-400 text-xs lg:text-base font-bold">人</span></div>
+                <div id="staffSub" class="flex gap-1 lg:gap-2">
+                    <div class="text-blue-300 text-[10px] lg:text-xs font-black bg-blue-500/10 px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg border border-blue-900/50 flex-1 text-center">运: <span id="operS">--</span></div>
+                    <div class="text-slate-300 text-[10px] lg:text-xs font-black bg-slate-500/10 px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg border border-slate-700/50 flex-1 text-center">后: <span id="backS">--</span></div>
+                </div>
+            </div>
+
+            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-blue-500 bg-blue-600/5 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">③ 今日预测营收</p>
+                <div class="flex items-baseline gap-2 mb-3 lg:mb-4"><span id="foreTotalRev" class="text-3xl lg:text-5xl font-black text-white leading-none">0.00</span><span class="text-slate-400 text-xs lg:text-base font-bold">万</span></div>
+                <div class="flex gap-1 lg:gap-2">
+                    <div class="bg-emerald-500/20 text-emerald-300 px-2 lg:px-3 py-1 lg:py-1.5 rounded-xl text-[10px] lg:text-xs font-black flex-1 text-center border border-emerald-900/50">客: <span id="foreRoom">--</span></div>
+                    <div class="bg-blue-500/20 text-blue-300 px-2 lg:px-3 py-1 lg:py-1.5 rounded-xl text-[10px] lg:text-xs font-black flex-1 text-center border border-blue-900/50">餐: <span id="foreFood">--</span></div>
+                </div>
+            </div>
+            
+            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-amber-500 bg-amber-500/10 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">④ 今日预测人效</p>
+                <div class="flex items-baseline gap-2 lg:gap-3 mb-3 lg:mb-4"><span id="foreTotalEff" class="text-3xl lg:text-5xl font-black text-amber-300 italic leading-none">0.00</span></div>
+                <div class="grid grid-cols-2 gap-1 lg:gap-2">
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">客房预测</span><span id="foreRoomEff" class="text-base lg:text-xl font-black text-emerald-400">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮预测</span><span id="foreFoodEff" class="text-base lg:text-xl font-black text-amber-400">--</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="mainGrid" class="hidden flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6">
+            
+            <div class="order-2 lg:order-1 lg:col-span-3 biz-card p-4 lg:p-6 overflow-hidden flex flex-col h-[350px] lg:h-auto">
+                <h3 class="flex-none font-black text-xs text-slate-300 mb-4 lg:mb-6 uppercase tracking-[0.3em] border-b border-slate-700 pb-3">Department Staffing</h3>
+                <div id="deptList" class="flex-1 overflow-y-auto no-scrollbar pr-2"></div>
+            </div>
+            
+            <div class="order-1 lg:order-2 lg:col-span-9 flex flex-col gap-4 lg:gap-6 min-h-0">
+                <div class="flex-1 biz-card p-4 lg:p-6 shadow-[inset_0_0_20px_rgba(56,189,248,0.05)] min-h-[300px] lg:min-h-0 flex flex-col">
+                    <h3 class="flex-none font-black text-xs text-slate-300 mb-4 flex items-center gap-2 tracking-widest uppercase">Efficiency Trend (15 Days)</h3>
+                    <div id="multiEffChart" class="flex-1 w-full min-h-[250px] lg:min-h-0"></div>
+                </div>
+                <div class="flex-none grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-auto lg:h-[28vh]">
+                    <div class="biz-card p-4 lg:p-5 h-[250px] lg:h-full"><div id="revTrendChart" class="w-full h-full"></div></div>
+                    <div class="biz-card p-4 lg:p-5 h-[250px] lg:h-full"><div id="staffMixChart" class="w-full h-full"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFullScreen() {
+            const doc = document.getElementById("exportWrapper");
+            const isFS = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!isFS) {
+                if (doc.requestFullscreen) doc.requestFullscreen(); else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+                document.getElementById('fsText').innerText = "退出";
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                document.getElementById('fsText').innerText = "演示";
+            }
+        }
+
+        let hotelData = {}; let charts = {};
+        
+        const toN = (v) => { 
+            if(v === undefined || v === null) return 0;
+            let s = String(v).replace(/,/g, '').trim(); 
+            let n = parseFloat(s); 
+            return isNaN(n) ? 0 : n; 
+        };
+
+        window.onload = () => {
+            setInterval(() => { 
+                const clock = document.getElementById('liveClock');
+                if (clock) clock.innerText = new Date().toTimeString().split(' ')[0]; 
+            }, 1000);
+            fetchCloudData();
+        };
+
+        async function fetchCloudData() {
+            let skip = 0;
+            const limit = 20; 
+            const targetDays = 15; 
+            let uniqueDays = new Set(); 
+            let maxAttempts = 20; 
+            let currentAttempt = 0;
+
+            const today = new Date();
+            const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+            try {
+                while(uniqueDays.size < targetDays && currentAttempt < maxAttempts) {
+                    let url = `https://api.bmobcloud.com/1/classes/HotelDataV4?limit=${limit}&order=-createdAt`;
+                    if (skip > 0) url += `&skip=${skip}`;
+                    
+                    let headers = { 
+                        "X-Bmob-Application-Id": "93bae0ff3bdc39da2580f580335399ba", 
+                        "X-Bmob-REST-API-Key": "b300e7fdf5168ccb7c7cc83980d2845c",
+                        "Content-Type": "application/json"
+                    };
+
+                    let res = await fetch(url, { headers });
+                    if (!res.ok) throw new Error(`HTTP 状态码: ${res.status}`);
+                    let json = await res.json();
+                    
+                    if (json && json.results && json.results.length > 0) {
+                        json.results.forEach(record => {
+                            if (record.reportDate <= todayStr) {
+                                if (record.csvData && !hotelData[record.reportDate]) {
+                                    let parsed = Papa.parse(record.csvData, { skipEmptyLines: true });
+                                    processV34(parsed.data, record.reportDate);
+                                    uniqueDays.add(record.reportDate); 
+                                }
+                            }
+                        });
+                        if(json.results.length < limit) break;
+                        skip += limit;
+                        currentAttempt++;
+                    } else {
+                        break; 
+                    }
+                }
+            } catch(e) { 
+                console.error("拉取异常", e);
+                document.getElementById('loadingMsg').innerText = "拉取失败：" + e.message;
+            } finally {
+                render(); 
+            }
+        }
+
+        function processV34(data, dateKey) {
+            let depts = {}, fore = { total:0, room:0, food:0, eff:0, roomEff:0, foodEff:0 }, actual = { rev:0, eff:0, staff:0, operStaff:0, backStaff:0, foodEff:0, roomEff:0 };
+            
+            for(let r=0; r<data.length; r++) {
+                let row = data[r];
+                let name = String(row[1]||"").trim();
+                
+                if (!isNaN(parseInt(row[0])) && (name.endsWith('部') || name.includes('餐饮') || name.includes('厅'))) {
+                    if (name !== '餐饮板块' && name !== '合计') {
+                        let c = toN(row[4]) + toN(row[5]) + toN(row[6]); 
+                        if(c > 0) depts[name] = c;
+                    }
+                }
+                
+                for(let c=0; c<row.length; c++) {
+                    let cell = String(row[c]).replace(/\s+/g, ""); 
+                    
+                    if(cell === '合计上班人数' && data[r+1]) actual.staff = toN(data[r+1][c]);
+                    if(cell === '运营部门上班人数' && data[r+1]) actual.operStaff = toN(data[r+1][c]);
+                    if(cell === '后台部门上班人数' && data[r+1]) actual.backStaff = toN(data[r+1][c]);
+                    if(cell === '今日客房预测营收') fore.room = toN(row[c+1]);
+                    if(cell === '今日餐饮预测营收') fore.food = toN(row[c+1]);
+                    if(cell === '今日预测总营收') fore.total = toN(row[c+1]);
+
+                    if(cell === '当日人效') {
+                        for(let k=1; k<=5; k++) {
+                            if(data[r+k]) {
+                                let subCell = String(data[r+k][c]).replace(/\s+/g, "");
+                                if(subCell === '总计') {
+                                    actual.eff = toN(data[r+k][c+2]);
+                                    fore.eff = toN(data[r+k][c+3]);
+                                }
+                                if(subCell === '客房') {
+                                    actual.roomEff = toN(data[r+k][c+2]);
+                                    fore.roomEff = toN(data[r+k][c+3]);
+                                }
+                                if(subCell === '餐饮') {
+                                    actual.foodEff = toN(data[r+k][c+2]);
+                                    fore.foodEff = toN(data[r+k][c+3]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (fore.total > 0 || actual.eff > 0 || actual.staff > 0 || Object.keys(depts).length > 0) {
+                hotelData[dateKey] = { depts, fore, actual };
+            }
+        }
+
+        function render() {
+            const loadingEl = document.getElementById('loading');
+            if(loadingEl) loadingEl.classList.add('hidden');
+            
+            document.getElementById('topRow').classList.remove('hidden');
+            document.getElementById('mainGrid').classList.remove('hidden');
+
+            const dates = Object.keys(hotelData).sort();
+            if (dates.length === 0) return;
+            
+            const sel = document.getElementById('dateSelector');
+            sel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
+            sel.value = dates[dates.length - 1];
+            updateUI(sel.value);
+            sel.onchange = e => updateUI(e.target.value);
+        }
+
+        function updateUI(curDate) {
+            const dates = Object.keys(hotelData).sort(), cur = hotelData[curDate], idx = dates.indexOf(curDate), prev = idx > 0 ? hotelData[dates[idx-1]] : null;
+            
+            if (prev) {
+                document.getElementById('prevActualEff').innerText = (prev.actual.eff || 0).toFixed(2);
+                document.getElementById('prevRoomEff').innerText = (prev.actual.roomEff || 0).toFixed(2);
+                document.getElementById('prevFoodEff').innerText = (prev.actual.foodEff || 0).toFixed(2);
+                let prevPrev = idx > 1 ? hotelData[dates[idx-2]] : null;
+                let diff = ((prev.actual.eff || 0) - (prevPrev ? prevPrev.actual.eff : 0)).toFixed(2);
+                document.getElementById('prevEffDiff').innerHTML = diff >= 0 ? `<span class="bg-indigo-950 text-indigo-300 px-1.5 py-0.5 rounded">▲ +${diff}</span>` : `<span class="bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded">▼ ${diff}</span>`;
+            } else {
+                document.getElementById('prevActualEff').innerText = "0.00";
+                document.getElementById('prevRoomEff').innerText = "0.00";
+                document.getElementById('prevFoodEff').innerText = "0.00";
+                document.getElementById('prevEffDiff').innerHTML = "--";
+            }
+
+            document.getElementById('totalStaffCount').innerText = cur.actual.staff || 0;
+            document.getElementById('operS').innerText = cur.actual.operStaff || 0;
+            document.getElementById('backS').innerText = cur.actual.backStaff || 0;
+            
+            document.getElementById('foreTotalRev').innerText = (cur.fore.total || 0).toFixed(2);
+            document.getElementById('foreRoom').innerText = (cur.fore.room || 0).toFixed(2);
+            document.getElementById('foreFood').innerText = (cur.fore.food || 0).toFixed(2);
+
+            document.getElementById('foreTotalEff').innerText = (cur.fore.eff || 0).toFixed(2);
+            document.getElementById('foreRoomEff').innerText = (cur.fore.roomEff || 0).toFixed(2);
+            document.getElementById('foreFoodEff').innerText = (cur.fore.foodEff || 0).toFixed(2);
+            
+            const dList = document.getElementById('deptList'); dList.innerHTML = '';
+            Object.keys(cur.depts).sort((a,b) => cur.depts[b] - cur.depts[a]).forEach(name => {
+                let c = cur.depts[name], p = prev ? (prev.depts[name] || 0) : c, diff = c - p;
+                dList.insertAdjacentHTML('beforeend', `<div class="dept-item flex justify-between items-center"><span class="text-slate-200 font-bold text-[13px] tracking-wide">${name}</span><div class="flex gap-4 items-center"><span class="text-white font-black text-lg">${c}</span><span class="${diff>0?'text-rose-400':diff<0?'text-emerald-400':'text-slate-600'} w-8 text-right font-black text-[10px]">${diff > 0 ? '+'+diff : diff < 0 ? diff : '-'}</span></div></div>`);
+            });
+            
+            renderCharts(curDate, dates);
+        }
+
+        function renderCharts(curDate, allDates) {
+            const idx = allDates.indexOf(curDate);
+            const recent = allDates.slice(Math.max(0, idx - 14), idx + 1); 
+            const labels = recent.map(d => d.substring(5));
+            const common = { grid: { top: '15%', bottom: '15%', left: '5%', right: '5%', containLabel: true }, xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b', fontSize: 10 } }, yAxis: { show: false } };
+            
+            if(!charts.eff) charts.eff = echarts.init(document.getElementById('multiEffChart'), 'dark');
+            charts.eff.setOption({ ...common, backgroundColor: 'transparent', 
+                tooltip: { trigger: 'axis', valueFormatter: v => v ? v.toFixed(2) : '0.00' },
+                legend: { bottom: 0, textStyle: { color: '#94a3b8', fontSize: 10 } },
+                series: [
+                    { name: '总人效', type: 'line', smooth: true, data: recent.map(k => hotelData[k].actual.eff), itemStyle: { color: '#38bdf8' }, areaStyle: { color: 'rgba(56, 189, 248, 0.1)' }, lineStyle: { width: 4 } },
+                    { name: '餐饮板块', type: 'line', smooth: true, data: recent.map(k => hotelData[k].actual.foodEff), itemStyle: { color: '#fbbf24' } },
+                    { name: '房务板块', type: 'line', smooth: true, data: recent.map(k => hotelData[k].actual.roomEff), itemStyle: { color: '#4ade80' } }
+                ]
+            });
+            
+            if(!charts.rev) charts.rev = echarts.init(document.getElementById('revTrendChart'), 'dark');
+            charts.rev.setOption({ ...common, backgroundColor: 'transparent', 
+                tooltip: { trigger: 'axis', valueFormatter: v => v ? v.toFixed(2) + ' 万' : '0.00 万' },
+                legend: { bottom: 0, textStyle: { color: '#94a3b8', fontSize: 10 }, itemWidth: 10, itemHeight: 10 },
+                series: [
+                    { name: '总营收', type: 'line', smooth: true, data: recent.map(k => hotelData[k].actual.rev || hotelData[k].fore.total), itemStyle: { color: '#60a5fa' }, lineStyle: { width: 3 } },
+                    { name: '客房营收', type: 'line', smooth: true, data: recent.map(k => hotelData[k].fore.room), itemStyle: { color: '#4ade80' }, lineStyle: { width: 2 } },
+                    { name: '餐饮营收', type: 'line', smooth: true, data: recent.map(k => hotelData[k].fore.food), itemStyle: { color: '#fbbf24' }, lineStyle: { width: 2 } }
+                ] 
+            });
+            
+            if(!charts.staffMix) charts.staffMix = echarts.init(document.getElementById('staffMixChart'), 'dark');
+            charts.staffMix.setOption({ ...common, backgroundColor: 'transparent', 
+                tooltip: { trigger: 'axis' },
+                legend: { bottom: 0, textStyle: { color: '#94a3b8', fontSize: 10 }, itemWidth: 10, itemHeight: 10 },
+                series: [
+                    { name: '运营', type: 'bar', stack: 's', data: recent.map(k => hotelData[k].actual.operStaff), itemStyle: { color: '#818cf8' }, label: { show: true, position: 'inside', color: '#ffffff', fontSize: 10, fontWeight: 'bold' } }, 
+                    { name: '后台', type: 'bar', stack: 's', data: recent.map(k => hotelData[k].actual.backStaff), itemStyle: { color: '#475569' }, label: { show: true, position: 'inside', color: '#ffffff', fontSize: 10, fontWeight: 'bold' } }
+                ] 
+            });
+            setTimeout(() => Object.values(charts).forEach(c => c.resize()), 200);
+        }
+        window.onresize = () => Object.values(charts).forEach(c => c.resize());
+    </script>
+</body>
+</html>
