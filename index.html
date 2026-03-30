@@ -9,43 +9,69 @@
     <script src="https://cdn.staticfile.net/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
-        /* 重写底层CSS：移动端允许滚动，禁用横向滚动 */
-        html, body { width: 100%; overflow-x: hidden; margin: 0; padding: 0; background-color: #0d111a; color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* 🌟 重写底层CSS：移动端允许滚动，禁用横向滚动 */
+        html, body { 
+            width: 100%; overflow-x: hidden; margin: 0; padding: 0; 
+            background-color: #0d111a !important; 
+            color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; 
+        }
+        
+        /* 🔧 修复 Safari 全屏白底：一定要拆分伪类，不能用逗号写在一起！ */
+        ::backdrop { background-color: #0d111a !important; }
+        
+        :-webkit-full-screen { background-color: #0d111a !important; width: 100vw !important; height: 100vh !important; }
+        :fullscreen { background-color: #0d111a !important; width: 100vw !important; height: 100vh !important; }
         
         /* 大屏设备恢复全屏锁死高度体验 */
         @media (min-width: 1024px) {
             html, body { height: 100vh; overflow: hidden; }
-            #exportWrapper { height: 100vh; overflow: hidden; padding: 2vh 2.5vw; gap: 0; }
+            #exportWrapper { height: 100vh; overflow: hidden; padding: 2vh 2.5vw; display: flex; flex-direction: column; }
         }
         
-        #exportWrapper { min-height: 100vh; width: 100%; display: flex; flex-direction: column; padding: 4vw; box-sizing: border-box; gap: 1rem; }
+        #exportWrapper { 
+            min-height: 100vh; width: 100%; display: flex; flex-direction: column; 
+            padding: 4vw; box-sizing: border-box; gap: 1rem; 
+            background-color: #0d111a; 
+        }
+        
+        #exportWrapper:fullscreen { 
+            padding: 3vh 3vw !important; 
+            background-color: #0d111a !important; 
+            height: 100vh !important;
+            box-sizing: border-box !important;
+        }
+        #exportWrapper:-webkit-full-screen { 
+            padding: 3vh 3vw !important; 
+            background-color: #0d111a !important; 
+            height: 100vh !important;
+            box-sizing: border-box !important;
+        }
         
         .biz-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(15px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; }
         .brand-title { font-weight: 900; background: linear-gradient(135deg, #a7f3d0, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .digital-clock { font-family: 'JetBrains+Mono', monospace; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* 部门列表稍微紧凑一点，以显示更多 */
-        .dept-item { padding: 0.4vh 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .dept-item { padding: 0.3vh 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .dept-item:last-child { border-bottom: none; }
-        #exportWrapper:fullscreen, #exportWrapper:-webkit-full-screen { padding: 4vh 4vw; background-color: #0d111a; }
     </style>
 </head>
 <body>
     <div id="exportWrapper">
-        <header class="flex-none flex flex-col lg:flex-row justify-between items-start lg:items-center mb-2 lg:mb-6 border-b border-slate-700/60 pb-4">
+        <header class="flex-none flex flex-col lg:flex-row justify-between items-start lg:items-center mb-2 lg:mb-3 border-b border-slate-700/60 pb-2 lg:pb-3">
             <div class="flex items-center gap-3 lg:gap-5 w-full lg:w-auto">
                 <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl flex-shrink-0"><span class="text-white font-black text-xl lg:text-2xl tracking-tighter">KY</span></div>
                 <div class="min-w-0">
-                    <h1 class="text-xl lg:text-3xl brand-title tracking-tighter truncate">嵊州开元名都大酒店数字化经营决策系统</h1>
+                    <h1 class="text-xl lg:text-3xl brand-title tracking-tighter truncate">嵊州开元名都大酒店数字化经营决策系统 V74</h1>
                     <div class="flex items-center gap-2 lg:gap-3 mt-1">
                         <span id="liveClock" class="digital-clock text-xs lg:text-sm font-bold tracking-widest">00:00:00</span>
-                        <span class="text-emerald-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest px-2 lg:px-3 py-0.5 lg:py-1 rounded-full border border-emerald-800 bg-emerald-950/40 animate-pulse truncate">V74 全端自适应版</span>
+                        <span class="text-emerald-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest px-2 lg:px-3 py-0.5 lg:py-1 rounded-full border border-emerald-800 bg-emerald-950/40 animate-pulse truncate">全端自适应演示版</span>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3 mt-4 lg:mt-0 w-full lg:w-auto justify-between lg:justify-end">
+            <div class="flex items-center gap-3 mt-3 lg:mt-0 w-full lg:w-auto justify-between lg:justify-end">
                 <button onclick="toggleFullScreen()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 lg:px-6 py-2 lg:py-3 rounded-xl transition-all shadow-lg flex-1 lg:flex-none"><span id="fsText">演示模式</span></button>
-                <select id="dateSelector" class="bg-slate-800 border border-slate-700 rounded-xl px-3 lg:px-4 py-2 lg:py-2 text-sm font-bold text-blue-300 outline-none flex-1 lg:flex-none"></select>
+                <select id="dateSelector" class="bg-slate-800 border border-slate-700 rounded-xl px-3 lg:px-4 py-2 text-sm font-bold text-blue-300 outline-none flex-1 lg:flex-none"></select>
             </div>
         </header>
 
@@ -54,59 +80,71 @@
             <p id="loadingMsg" class="text-slate-400 text-sm tracking-widest uppercase">云端数据拉取中，请稍候...</p>
         </div>
 
-        <div id="topRow" class="hidden flex-none grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-2 lg:mb-6 lg:h-[22vh]">
-            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-indigo-500 bg-indigo-500/10 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
-                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">① 昨日结账人效</p>
-                <div class="flex items-baseline gap-2 lg:gap-3 mb-3 lg:mb-4"><span id="prevActualEff" class="text-3xl lg:text-5xl font-black text-indigo-300 italic leading-none">0.00</span><span id="prevEffDiff" class="text-[10px] lg:text-xs font-black px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-lg shadow-sm">--</span></div>
+        <div id="topRow" class="hidden flex-none grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-3 lg:mb-4">
+            
+            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-indigo-500 bg-indigo-500/10 justify-center shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">① 昨日结账人效</p>
+                <div class="flex items-baseline gap-2 lg:gap-3 mb-1.5 lg:mb-2"><span id="prevActualEff" class="text-3xl lg:text-4xl font-black text-indigo-300 italic leading-none">0.00</span><span id="prevEffDiff" class="text-[10px] lg:text-xs font-black px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-lg shadow-sm">--</span></div>
                 <div class="grid grid-cols-2 gap-1 lg:gap-2">
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">房务结账</span><span id="prevRoomEff" class="text-base lg:text-xl font-black text-emerald-400">--</span></div>
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮结账</span><span id="prevFoodEff" class="text-base lg:text-xl font-black text-amber-400">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">房务结账</span><span id="prevRoomEff" class="text-base lg:text-lg font-black text-emerald-400 mt-0.5 leading-none">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮结账</span><span id="prevFoodEff" class="text-base lg:text-lg font-black text-amber-400 mt-0.5 leading-none">--</span></div>
                 </div>
             </div>
 
-            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-emerald-500 bg-emerald-600/5 shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]">
-                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">② 今日上班人数</p>
-                <div class="flex items-baseline gap-2 mb-3 lg:mb-4"><span id="totalStaffCount" class="text-3xl lg:text-5xl font-black text-emerald-400 leading-none">0</span><span class="text-slate-400 text-xs lg:text-base font-bold">人</span></div>
+            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-emerald-500 bg-emerald-600/5 justify-center shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">② 今日上班人数</p>
+                <div class="flex items-baseline gap-2 mb-1.5 lg:mb-2"><span id="totalStaffCount" class="text-3xl lg:text-4xl font-black text-emerald-400 leading-none">0</span><span class="text-slate-400 text-xs lg:text-sm font-bold">人</span></div>
                 <div id="staffSub" class="flex gap-1 lg:gap-2">
-                    <div class="text-blue-300 text-[10px] lg:text-xs font-black bg-blue-500/10 px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg border border-blue-900/50 flex-1 text-center">运: <span id="operS">--</span></div>
-                    <div class="text-slate-300 text-[10px] lg:text-xs font-black bg-slate-500/10 px-2 lg:px-3 py-1 lg:py-1.5 rounded-lg border border-slate-700/50 flex-1 text-center">后: <span id="backS">--</span></div>
+                    <div class="text-blue-300 text-[10px] lg:text-xs font-black bg-blue-500/10 px-2 lg:px-3 py-1 rounded-lg border border-blue-900/50 flex-1 text-center">运: <span id="operS">--</span></div>
+                    <div class="text-slate-300 text-[10px] lg:text-xs font-black bg-slate-500/10 px-2 lg:px-3 py-1 rounded-lg border border-slate-700/50 flex-1 text-center">后: <span id="backS">--</span></div>
                 </div>
             </div>
 
-            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-blue-500 bg-blue-600/5 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]">
-                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">③ 今日预测营收</p>
-                <div class="flex items-baseline gap-2 mb-3 lg:mb-4"><span id="foreTotalRev" class="text-3xl lg:text-5xl font-black text-white leading-none">0.00</span><span class="text-slate-400 text-xs lg:text-base font-bold">万</span></div>
+            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-blue-500 bg-blue-600/5 justify-center shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">③ 今日预测营收</p>
+                <div class="flex items-baseline gap-2 mb-1.5 lg:mb-2"><span id="foreTotalRev" class="text-3xl lg:text-4xl font-black text-white leading-none">0.00</span><span class="text-slate-400 text-xs lg:text-sm font-bold">万</span></div>
                 <div class="flex gap-1 lg:gap-2">
-                    <div class="bg-emerald-500/20 text-emerald-300 px-2 lg:px-3 py-1 lg:py-1.5 rounded-xl text-[10px] lg:text-xs font-black flex-1 text-center border border-emerald-900/50">客: <span id="foreRoom">--</span></div>
-                    <div class="bg-blue-500/20 text-blue-300 px-2 lg:px-3 py-1 lg:py-1.5 rounded-xl text-[10px] lg:text-xs font-black flex-1 text-center border border-blue-900/50">餐: <span id="foreFood">--</span></div>
+                    <div class="bg-emerald-500/20 text-emerald-300 px-2 lg:px-3 py-1 rounded-xl text-[10px] lg:text-xs font-black flex-1 text-center border border-emerald-900/50">客: <span id="foreRoom">--</span></div>
+                    <div class="bg-blue-500/20 text-blue-300 px-2 lg:px-3 py-1 rounded-xl text-[10px] lg:text-xs font-black flex-1 text-center border border-blue-900/50">餐: <span id="foreFood">--</span></div>
                 </div>
             </div>
             
-            <div class="biz-card p-3 lg:p-5 border-t-4 border-t-amber-500 bg-amber-500/10 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]">
-                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 truncate">④ 今日预测人效</p>
-                <div class="flex items-baseline gap-2 lg:gap-3 mb-3 lg:mb-4"><span id="foreTotalEff" class="text-3xl lg:text-5xl font-black text-amber-300 italic leading-none">0.00</span></div>
+            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-amber-500 bg-amber-500/10 justify-center shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">④ 今日预测人效</p>
+                <div class="flex items-baseline gap-2 lg:gap-3 mb-1.5 lg:mb-2"><span id="foreTotalEff" class="text-3xl lg:text-4xl font-black text-amber-300 italic leading-none">0.00</span></div>
                 <div class="grid grid-cols-2 gap-1 lg:gap-2">
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">客房预测</span><span id="foreRoomEff" class="text-base lg:text-xl font-black text-emerald-400">--</span></div>
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮预测</span><span id="foreFoodEff" class="text-base lg:text-xl font-black text-amber-400">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">客房预测</span><span id="foreRoomEff" class="text-base lg:text-lg font-black text-emerald-400 mt-0.5 leading-none">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮预测</span><span id="foreFoodEff" class="text-base lg:text-lg font-black text-amber-400 mt-0.5 leading-none">--</span></div>
                 </div>
             </div>
         </div>
 
-        <div id="mainGrid" class="hidden flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6">
+        <div id="mainGrid" class="hidden flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-5">
             
-            <div class="order-2 lg:order-1 lg:col-span-3 biz-card p-4 lg:p-6 overflow-hidden flex flex-col h-[450px] lg:h-auto">
-                <h3 class="flex-none font-black text-xs text-slate-300 mb-4 lg:mb-6 uppercase tracking-[0.3em] border-b border-slate-700 pb-3">Department Staffing</h3>
-                <div id="deptList" class="flex-1 overflow-y-auto no-scrollbar pr-2"></div>
+            <div class="order-2 lg:order-1 lg:col-span-1 biz-card p-4 lg:p-4 overflow-hidden flex flex-col h-[350px] lg:h-full">
+                <h3 class="flex-none font-black text-[10px] lg:text-xs text-slate-300 mb-3 lg:mb-4 uppercase tracking-[0.2em] border-b border-slate-700 pb-2">Department Staffing</h3>
+                <div id="deptList" class="flex-1 overflow-y-auto no-scrollbar pr-1"></div>
             </div>
             
-            <div class="order-1 lg:order-2 lg:col-span-9 flex flex-col gap-4 lg:gap-6 min-h-0">
-                <div class="flex-1 biz-card p-4 lg:p-6 shadow-[inset_0_0_20px_rgba(56,189,248,0.05)] min-h-[300px] lg:min-h-0 flex flex-col">
-                    <h3 class="flex-none font-black text-xs text-slate-300 mb-4 flex items-center gap-2 tracking-widest uppercase">Efficiency Trend (15 Days)</h3>
-                    <div id="multiEffChart" class="flex-1 w-full min-h-[250px] lg:min-h-0"></div>
+            <div class="order-1 lg:order-2 lg:col-span-4 flex flex-col gap-4 lg:gap-5 min-h-0">
+                <div class="flex-1 biz-card p-4 lg:p-4 shadow-[inset_0_0_20px_rgba(56,189,248,0.05)] min-h-[300px] lg:min-h-0 flex flex-col">
+                    <h3 class="flex-none font-black text-xs text-slate-300 mb-2 lg:mb-3 flex items-center gap-2 tracking-widest uppercase">Efficiency Trend (15 Days)</h3>
+                    <div class="flex-1 relative w-full min-h-[250px] lg:min-h-0">
+                        <div id="multiEffChart" class="absolute inset-0"></div>
+                    </div>
                 </div>
-                <div class="flex-none grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 h-auto lg:h-[32vh]">
-                    <div class="biz-card p-4 lg:p-5 h-[250px] lg:h-full"><div id="revTrendChart" class="w-full h-full"></div></div>
-                    <div class="biz-card p-4 lg:p-5 h-[250px] lg:h-full"><div id="staffMixChart" class="w-full h-full"></div></div>
+                
+                <div class="flex-none grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5 h-auto lg:h-[26vh]">
+                    <div class="biz-card p-4 lg:p-4 h-[250px] lg:h-full flex flex-col">
+                        <div class="flex-1 relative w-full h-full">
+                            <div id="revTrendChart" class="absolute inset-0"></div>
+                        </div>
+                    </div>
+                    <div class="biz-card p-4 lg:p-4 h-[250px] lg:h-full flex flex-col">
+                        <div class="flex-1 relative w-full h-full">
+                            <div id="staffMixChart" class="absolute inset-0"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -194,7 +232,6 @@
         }
 
         function processV34(data, dateKey) {
-            // 初始化字段：新增实际营收字段 rev, roomRev, foodRev
             let depts = {}, fore = { total:0, room:0, food:0, eff:0, roomEff:0, foodEff:0 }, actual = { rev:0, roomRev:0, foodRev:0, eff:0, staff:0, operStaff:0, backStaff:0, foodEff:0, roomEff:0 };
             
             for(let r=0; r<data.length; r++) {
@@ -214,27 +251,28 @@
                     if(cell === '合计上班人数' && data[r+1]) actual.staff = toN(data[r+1][c]);
                     if(cell === '运营部门上班人数' && data[r+1]) actual.operStaff = toN(data[r+1][c]);
                     if(cell === '后台部门上班人数' && data[r+1]) actual.backStaff = toN(data[r+1][c]);
+                    
                     if(cell === '今日客房预测营收') fore.room = toN(row[c+1]);
                     if(cell === '今日餐饮预测营收') fore.food = toN(row[c+1]);
                     if(cell === '今日预测总营收') fore.total = toN(row[c+1]);
 
-                    // 精准定位实际营收：基于表格截图，“当日人效”右侧第一列就是“营收(万元)”
+                    // 🚨 完美匹配截图：核心修改区 - 基于"当日人效"矩阵精准抓取实际营收
                     if(cell === '当日人效') {
                         for(let k=1; k<=5; k++) {
                             if(data[r+k]) {
                                 let subCell = String(data[r+k][c]).replace(/\s+/g, "");
                                 if(subCell === '总计') {
-                                    actual.rev = toN(data[r+k][c+1]);      // 修正抓取：总计营收 (c+1)
-                                    actual.eff = toN(data[r+k][c+2]);      // 人效 (c+2)
-                                    fore.eff = toN(data[r+k][c+3]);        // 预测人效 (c+3)
+                                    actual.rev = toN(data[r+k][c+1]);      // 营收(万元) 列
+                                    actual.eff = toN(data[r+k][c+2]);      // 人效(万元) 列
+                                    fore.eff = toN(data[r+k][c+3]);        // 本日预测人效 列
                                 }
                                 if(subCell === '客房') {
-                                    actual.roomRev = toN(data[r+k][c+1]);  // 修正抓取：客房营收 (c+1)
+                                    actual.roomRev = toN(data[r+k][c+1]);  // 营收(万元) 列
                                     actual.roomEff = toN(data[r+k][c+2]);
                                     fore.roomEff = toN(data[r+k][c+3]);
                                 }
                                 if(subCell === '餐饮') {
-                                    actual.foodRev = toN(data[r+k][c+1]);  // 修正抓取：餐饮营收 (c+1)
+                                    actual.foodRev = toN(data[r+k][c+1]);  // 营收(万元) 列
                                     actual.foodEff = toN(data[r+k][c+2]);
                                     fore.foodEff = toN(data[r+k][c+3]);
                                 }
@@ -298,7 +336,7 @@
             const dList = document.getElementById('deptList'); dList.innerHTML = '';
             Object.keys(cur.depts).sort((a,b) => cur.depts[b] - cur.depts[a]).forEach(name => {
                 let c = cur.depts[name], p = prev ? (prev.depts[name] || 0) : c, diff = c - p;
-                dList.insertAdjacentHTML('beforeend', `<div class="dept-item flex justify-between items-center"><span class="text-slate-200 font-bold text-[12px] tracking-wide">${name}</span><div class="flex gap-4 items-center"><span class="text-white font-black text-base">${c}</span><span class="${diff>0?'text-rose-400':diff<0?'text-emerald-400':'text-slate-600'} w-8 text-right font-black text-[10px]">${diff > 0 ? '+'+diff : diff < 0 ? diff : '-'}</span></div></div>`);
+                dList.insertAdjacentHTML('beforeend', `<div class="dept-item flex justify-between items-center"><span class="text-slate-200 font-bold text-[13px] tracking-wide">${name}</span><div class="flex gap-4 items-center"><span class="text-white font-black text-lg">${c}</span><span class="${diff>0?'text-rose-400':diff<0?'text-emerald-400':'text-slate-600'} w-8 text-right font-black text-[10px]">${diff > 0 ? '+'+diff : diff < 0 ? diff : '-'}</span></div></div>`);
             });
             
             renderCharts(curDate, dates);
@@ -308,7 +346,7 @@
             const idx = allDates.indexOf(curDate);
             const recent = allDates.slice(Math.max(0, idx - 14), idx + 1); 
             const labels = recent.map(d => d.substring(5));
-            const common = { grid: { top: '18%', bottom: '15%', left: '5%', right: '5%', containLabel: true }, xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b', fontSize: 10 } }, yAxis: { show: false } };
+            const common = { grid: { top: '15%', bottom: '15%', left: '5%', right: '5%', containLabel: true }, xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b', fontSize: 10 } }, yAxis: { show: false } };
             
             if(!charts.eff) charts.eff = echarts.init(document.getElementById('multiEffChart'), 'dark');
             charts.eff.setOption({ ...common, backgroundColor: 'transparent', 
@@ -322,30 +360,29 @@
             });
             
             if(!charts.rev) charts.rev = echarts.init(document.getElementById('revTrendChart'), 'dark');
-            // 需求1：营收取值改用实际（actual.xxxRev），并使用预测兜底；同时增加精美错开的数据标签
             charts.rev.setOption({ ...common, backgroundColor: 'transparent', 
                 tooltip: { trigger: 'axis', valueFormatter: v => v ? v.toFixed(2) + ' 万' : '0.00 万' },
                 legend: { bottom: 0, textStyle: { color: '#94a3b8', fontSize: 10 }, itemWidth: 10, itemHeight: 10 },
                 series: [
                     { 
                         name: '总营收', type: 'line', smooth: true, 
-                        data: recent.map(k => hotelData[k].actual.rev > 0 ? hotelData[k].actual.rev : hotelData[k].fore.total), 
+                        data: recent.map(k => hotelData[k].actual.rev || hotelData[k].fore.total), 
                         itemStyle: { color: '#60a5fa' }, lineStyle: { width: 3 },
-                        label: { show: true, position: 'top', color: '#60a5fa', fontSize: 10, fontWeight: 'bold', formatter: p => p.value ? p.value.toFixed(1) : '' },
+                        label: { show: true, position: 'top', color: '#60a5fa', fontSize: 10, formatter: p => p.value ? p.value.toFixed(1) : '' },
                         labelLayout: { hideOverlap: true }
                     },
                     { 
                         name: '客房营收', type: 'line', smooth: true, 
-                        data: recent.map(k => hotelData[k].actual.roomRev > 0 ? hotelData[k].actual.roomRev : hotelData[k].fore.room), 
+                        data: recent.map(k => hotelData[k].actual.roomRev || hotelData[k].fore.room), 
                         itemStyle: { color: '#4ade80' }, lineStyle: { width: 2 },
-                        label: { show: true, position: 'inside', color: '#4ade80', fontSize: 10, formatter: p => p.value ? p.value.toFixed(1) : '' },
+                        label: { show: true, position: 'bottom', color: '#4ade80', fontSize: 10, formatter: p => p.value ? p.value.toFixed(1) : '' },
                         labelLayout: { hideOverlap: true }
                     },
                     { 
                         name: '餐饮营收', type: 'line', smooth: true, 
-                        data: recent.map(k => hotelData[k].actual.foodRev > 0 ? hotelData[k].actual.foodRev : hotelData[k].fore.food), 
+                        data: recent.map(k => hotelData[k].actual.foodRev || hotelData[k].fore.food), 
                         itemStyle: { color: '#fbbf24' }, lineStyle: { width: 2 },
-                        label: { show: true, position: 'bottom', color: '#fbbf24', fontSize: 10, formatter: p => p.value ? p.value.toFixed(1) : '' },
+                        label: { show: true, position: 'bottom', distance: 15, color: '#fbbf24', fontSize: 10, formatter: p => p.value ? p.value.toFixed(1) : '' },
                         labelLayout: { hideOverlap: true }
                     }
                 ] 
