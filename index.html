@@ -122,6 +122,44 @@
         <div id="mainGrid" class="hidden flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-5">
             
             <div class="order-2 lg:order-1 lg:col-span-1 biz-card p-4 lg:p-4 overflow-hidden flex flex-col h-[350px] lg:h-full">
+                
+                <div class="mb-4">
+                    <h3 class="font-black text-[10px] lg:text-xs text-slate-300 mb-2.5 uppercase tracking-[0.2em] flex items-center">
+                        <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2"></span>MTD 累计均值
+                    </h3>
+                    <div class="flex-none grid grid-cols-3 gap-2.5">
+                        <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-2.5 flex flex-col justify-center gap-1 shadow-[inset_0_0_10px_rgba(99,102,241,0.05)]">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[10px] text-slate-400 font-bold">全店人数</span>
+                                <span id="monthTotalStaff" class="text-sm font-black text-indigo-300 leading-none">-</span>
+                            </div>
+                            <div class="flex justify-between items-end mt-0.5">
+                                <span class="text-[10px] text-slate-400 font-bold">人效</span>
+                                <span id="monthTotalEff" class="text-sm font-black text-indigo-400 leading-none">-</span>
+                            </div>
+                        </div>
+                        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 flex flex-col justify-center gap-1 shadow-[inset_0_0_10px_rgba(245,158,11,0.05)]">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[10px] text-slate-400 font-bold">餐饮人数</span>
+                                <span id="monthFoodStaff" class="text-sm font-black text-amber-300 leading-none">-</span>
+                            </div>
+                            <div class="flex justify-between items-end mt-0.5">
+                                <span class="text-[10px] text-slate-400 font-bold">人效</span>
+                                <span id="monthFoodEff" class="text-sm font-black text-amber-400 leading-none">-</span>
+                            </div>
+                        </div>
+                        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2.5 flex flex-col justify-center gap-1 shadow-[inset_0_0_10px_rgba(16,185,129,0.05)]">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[10px] text-slate-400 font-bold">客房人数</span>
+                                <span id="monthRoomStaff" class="text-sm font-black text-emerald-300 leading-none">-</span>
+                            </div>
+                            <div class="flex justify-between items-end mt-0.5">
+                                <span class="text-[10px] text-slate-400 font-bold">人效</span>
+                                <span id="monthRoomEff" class="text-sm font-black text-emerald-400 leading-none">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <h3 class="flex-none font-black text-[10px] lg:text-xs text-slate-300 mb-3 lg:mb-4 uppercase tracking-[0.2em] border-b border-slate-700 pb-2">Department Staffing</h3>
                 <div id="deptList" class="flex-1 overflow-y-auto no-scrollbar pr-1"></div>
             </div>
@@ -183,9 +221,9 @@
         async function fetchCloudData() {
             let skip = 0;
             const limit = 20; 
-            const targetDays = 15; 
+            const targetDays = 35; 
             let uniqueDays = new Set(); 
-            let maxAttempts = 20; 
+            let maxAttempts = 50;  
             let currentAttempt = 0;
 
             const today = new Date();
@@ -232,7 +270,7 @@
         }
 
         function processV34(data, dateKey) {
-            let depts = {}, fore = { total:0, room:0, food:0, eff:0, roomEff:0, foodEff:0 }, actual = { rev:0, roomRev:0, foodRev:0, eff:0, staff:0, operStaff:0, backStaff:0, foodEff:0, roomEff:0 };
+            let depts = {}, fore = { total:0, room:0, food:0, eff:0, roomEff:0, foodEff:0 }, actual = { rev:0, roomRev:0, foodRev:0, eff:0, staff:0, operStaff:0, backStaff:0, foodEff:0, roomEff:0, foodStaff:0, roomStaff:0 };
             
             for(let r=0; r<data.length; r++) {
                 let row = data[r];
@@ -251,28 +289,30 @@
                     if(cell === '合计上班人数' && data[r+1]) actual.staff = toN(data[r+1][c]);
                     if(cell === '运营部门上班人数' && data[r+1]) actual.operStaff = toN(data[r+1][c]);
                     if(cell === '后台部门上班人数' && data[r+1]) actual.backStaff = toN(data[r+1][c]);
+
+                    if(cell === '餐饮上班人数' && data[r+1]) actual.foodStaff = toN(data[r+1][c]);
+                    if(cell === '房务上班人数' && data[r+1]) actual.roomStaff = toN(data[r+1][c]);
                     
                     if(cell === '今日客房预测营收') fore.room = toN(row[c+1]);
                     if(cell === '今日餐饮预测营收') fore.food = toN(row[c+1]);
                     if(cell === '今日预测总营收') fore.total = toN(row[c+1]);
 
-                    // 🚨 完美匹配截图：核心修改区 - 基于"当日人效"矩阵精准抓取实际营收
                     if(cell === '当日人效') {
                         for(let k=1; k<=5; k++) {
                             if(data[r+k]) {
                                 let subCell = String(data[r+k][c]).replace(/\s+/g, "");
                                 if(subCell === '总计') {
-                                    actual.rev = toN(data[r+k][c+1]);      // 营收(万元) 列
-                                    actual.eff = toN(data[r+k][c+2]);      // 人效(万元) 列
-                                    fore.eff = toN(data[r+k][c+3]);        // 本日预测人效 列
+                                    actual.rev = toN(data[r+k][c+1]);      
+                                    actual.eff = toN(data[r+k][c+2]);      
+                                    fore.eff = toN(data[r+k][c+3]);        
                                 }
                                 if(subCell === '客房') {
-                                    actual.roomRev = toN(data[r+k][c+1]);  // 营收(万元) 列
+                                    actual.roomRev = toN(data[r+k][c+1]);  
                                     actual.roomEff = toN(data[r+k][c+2]);
                                     fore.roomEff = toN(data[r+k][c+3]);
                                 }
                                 if(subCell === '餐饮') {
-                                    actual.foodRev = toN(data[r+k][c+1]);  // 营收(万元) 列
+                                    actual.foodRev = toN(data[r+k][c+1]);  
                                     actual.foodEff = toN(data[r+k][c+2]);
                                     fore.foodEff = toN(data[r+k][c+3]);
                                 }
@@ -332,6 +372,34 @@
             document.getElementById('foreTotalEff').innerText = (cur.fore.eff || 0).toFixed(2);
             document.getElementById('foreRoomEff').innerText = (cur.fore.roomEff || 0).toFixed(2);
             document.getElementById('foreFoodEff').innerText = (cur.fore.foodEff || 0).toFixed(2);
+
+            // 🌟 精准的 MTD 均值计算，并保留2位小数 🌟
+            const curMonth = curDate.substring(0, 7); 
+            let monthData = { staff: 0, eff: 0, foodStaff: 0, foodEff: 0, roomStaff: 0, roomEff: 0, count: 0 };
+            
+            dates.forEach(d => {
+                if (d.startsWith(curMonth) && d <= curDate) {
+                    let a = hotelData[d].actual;
+                    monthData.staff += (a.staff || 0);
+                    monthData.eff += (a.eff || 0);
+                    monthData.foodStaff += (a.foodStaff || 0);
+                    monthData.foodEff += (a.foodEff || 0);
+                    monthData.roomStaff += (a.roomStaff || 0);
+                    monthData.roomEff += (a.roomEff || 0);
+                    monthData.count++;
+                }
+            });
+
+            if (monthData.count > 0) {
+                document.getElementById('monthTotalStaff').innerText = Math.round(monthData.staff / monthData.count);
+                document.getElementById('monthTotalEff').innerText = (monthData.eff / monthData.count).toFixed(2);
+                document.getElementById('monthFoodStaff').innerText = Math.round(monthData.foodStaff / monthData.count);
+                document.getElementById('monthFoodEff').innerText = (monthData.foodEff / monthData.count).toFixed(2);
+                document.getElementById('monthRoomStaff').innerText = Math.round(monthData.roomStaff / monthData.count);
+                document.getElementById('monthRoomEff').innerText = (monthData.roomEff / monthData.count).toFixed(2);
+            } else {
+                ['monthTotalStaff', 'monthTotalEff', 'monthFoodStaff', 'monthFoodEff', 'monthRoomStaff', 'monthRoomEff'].forEach(id => document.getElementById(id).innerText = '--');
+            }
             
             const dList = document.getElementById('deptList'); dList.innerHTML = '';
             Object.keys(cur.depts).sort((a,b) => cur.depts[b] - cur.depts[a]).forEach(name => {
