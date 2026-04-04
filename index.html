@@ -82,15 +82,17 @@
 
         <div id="topRow" class="hidden flex-none grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-3 lg:mb-4">
             
-            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-indigo-500 bg-indigo-500/10 justify-center shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
-                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">① 昨日结账人效</p>
-                <div class="flex items-baseline gap-2 lg:gap-3 mb-1.5 lg:mb-2"><span id="prevActualEff" class="text-3xl lg:text-4xl font-black text-indigo-300 italic leading-none">0.00</span><span id="prevEffDiff" class="text-[10px] lg:text-xs font-black px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-lg shadow-sm">--</span></div>
+            <!-- ① 今日预测人效 (原 ④) -->
+            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-amber-500 bg-amber-500/10 justify-center shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">① 今日预测人效</p>
+                <div class="flex items-baseline gap-2 lg:gap-3 mb-1.5 lg:mb-2"><span id="foreTotalEff" class="text-3xl lg:text-4xl font-black text-amber-300 italic leading-none">0.00</span></div>
                 <div class="grid grid-cols-2 gap-1 lg:gap-2">
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">房务结账</span><span id="prevRoomEff" class="text-base lg:text-lg font-black text-emerald-400 mt-0.5 leading-none">--</span></div>
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮结账</span><span id="prevFoodEff" class="text-base lg:text-lg font-black text-amber-400 mt-0.5 leading-none">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">客房预测</span><span id="foreRoomEff" class="text-base lg:text-lg font-black text-emerald-400 mt-0.5 leading-none">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮预测</span><span id="foreFoodEff" class="text-base lg:text-lg font-black text-amber-400 mt-0.5 leading-none">--</span></div>
                 </div>
             </div>
 
+            <!-- ② 今日上班人数 -->
             <div class="biz-card p-3 lg:p-3 border-t-4 border-t-emerald-500 bg-emerald-600/5 justify-center shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]">
                 <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">② 今日上班人数</p>
                 <div class="flex items-baseline gap-2 mb-1.5 lg:mb-2"><span id="totalStaffCount" class="text-3xl lg:text-4xl font-black text-emerald-400 leading-none">0</span><span class="text-slate-400 text-xs lg:text-sm font-bold">人</span></div>
@@ -100,6 +102,7 @@
                 </div>
             </div>
 
+            <!-- ③ 今日预测营收 -->
             <div class="biz-card p-3 lg:p-3 border-t-4 border-t-blue-500 bg-blue-600/5 justify-center shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]">
                 <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">③ 今日预测营收</p>
                 <div class="flex items-baseline gap-2 mb-1.5 lg:mb-2"><span id="foreTotalRev" class="text-3xl lg:text-4xl font-black text-white leading-none">0.00</span><span class="text-slate-400 text-xs lg:text-sm font-bold">万</span></div>
@@ -109,14 +112,16 @@
                 </div>
             </div>
             
-            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-amber-500 bg-amber-500/10 justify-center shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]">
-                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">④ 今日预测人效</p>
-                <div class="flex items-baseline gap-2 lg:gap-3 mb-1.5 lg:mb-2"><span id="foreTotalEff" class="text-3xl lg:text-4xl font-black text-amber-300 italic leading-none">0.00</span></div>
+            <!-- ④ 昨日结账人效 (原 ①) -->
+            <div class="biz-card p-3 lg:p-3 border-t-4 border-t-indigo-500 bg-indigo-500/10 justify-center shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]">
+                <p class="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 lg:mb-1.5 truncate">④ 昨日结账人效</p>
+                <div class="flex items-baseline gap-2 lg:gap-3 mb-1.5 lg:mb-2"><span id="prevActualEff" class="text-3xl lg:text-4xl font-black text-indigo-300 italic leading-none">0.00</span><span id="prevEffDiff" class="text-[10px] lg:text-xs font-black px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-lg shadow-sm">--</span></div>
                 <div class="grid grid-cols-2 gap-1 lg:gap-2">
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">客房预测</span><span id="foreRoomEff" class="text-base lg:text-lg font-black text-emerald-400 mt-0.5 leading-none">--</span></div>
-                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮预测</span><span id="foreFoodEff" class="text-base lg:text-lg font-black text-amber-400 mt-0.5 leading-none">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">房务结账</span><span id="prevRoomEff" class="text-base lg:text-lg font-black text-emerald-400 mt-0.5 leading-none">--</span></div>
+                    <div class="flex flex-col"><span class="text-[9px] lg:text-[10px] text-slate-500 uppercase font-bold tracking-tighter">餐饮结账</span><span id="prevFoodEff" class="text-base lg:text-lg font-black text-amber-400 mt-0.5 leading-none">--</span></div>
                 </div>
             </div>
+
         </div>
 
         <div id="mainGrid" class="hidden flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-5">
@@ -276,7 +281,8 @@
                 let row = data[r];
                 let name = String(row[1]||"").trim();
                 
-                if (!isNaN(parseInt(row[0])) && (name.endsWith('部') || name.includes('餐饮') || name.includes('厅'))) {
+                // 增加了 HRBP 和 PA保洁 两个部门的解析判断
+                if (!isNaN(parseInt(row[0])) && (name.endsWith('部') || name.includes('餐饮') || name.includes('厅') || name === 'HRBP' || name === 'PA保洁')) {
                     if (name !== '餐饮板块' && name !== '合计') {
                         let c = toN(row[4]) + toN(row[5]) + toN(row[6]); 
                         if(c > 0) depts[name] = c;
